@@ -5,8 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PERMIKOMNAS SLOT - Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      /* Mobile: hindari layout terpotong dengan tinggi yang adaptif */
+      @media (max-width: 640px) {
+        body {
+          overflow: auto;
+          height: auto;
+          min-height: 100vh;
+          padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .app-root {
+          padding-top: 10px;
+          padding-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+
+        .game-title {
+          font-size: clamp(2rem, 7vw, 3rem);
+          margin-bottom: 8px;
+          text-align: center;
+        }
+
+        .slots-window {
+          height: 38vh;
+          min-height: 210px;
+        }
+
+        .symbol {
+          height: 100%;
+          min-height: 46px;
+        }
+
+        .slot-machine-wrapper {
+          width: 100%;
+          padding: 10px;
+          border-width: 5px;
+          box-sizing: border-box;
+        }
+
+        .control-panel {
+          padding: 10px 12px;
+          max-width: 100%;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          margin-top: 0;
+          position: relative;
+          box-sizing: border-box;
+        }
+
+        .control-panel > .panel-box {
+          min-width: 140px;
+        }
+
+        .btn-spin {
+          width: 100%;
+          max-width: 260px;
+          font-size: 1.7rem;
+          padding: 10px 0;
+        }
+
+        #spin-counter {
+          top: 12px;
+          right: 12px;
+          font-size: 0.85rem;
+        }
+
+        #win-overlay {
+          padding: 16px;
+          box-sizing: border-box;
+        }
+
+        .win-title {
+          font-size: clamp(2.2rem, 7vw, 3.2rem);
+          text-align: center;
+        }
+
+        #welcome-overlay,
+        #game-over-overlay,
+        #deposit-overlay {
+          padding: 14px;
+          box-sizing: border-box;
+        }
+
+        .modal-box,
+        .welcome-box,
+        #deposit-modal {
+          width: 100%;
+          max-height: 90vh;
+          overflow: auto;
+        }
+      }
+    </style>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Carter+One&display=swap');
+
 
       body {
           background-color: #111;
@@ -25,6 +119,10 @@
           height: 100vh;
           margin: 0;
       }
+
+      .top-left-controls { user-select: none; }
+
+
 
       /* --- UI Audio Control & Info Hack Container --- */
       .top-left-controls {

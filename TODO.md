@@ -1,0 +1,7 @@
+- [ ] Sesuaikan layout mobile agar tidak terpotong (ubah CSS body height/overflow + layout slot + panel control)
+- [ ] Ubah selector untuk mobile agar `.slot-machine-wrapper`, `.slots-window`, `.control-panel`, title, dan overlay punya ukuran responsif
+- [ ] Ubah `body overflow` dari `hidden` menjadi scroll pada mobile (atau gunakan safe-area)
+- [ ] Update media query @media (max-width: 640px) dengan nilai baru yang lebih fleksibel
+- [ ] Pastikan elemen tidak saling tumpang tindih (win-overlay, money-rain, welcome)
+- [ ] Simpan perubahan di `index.html`
+- [ ] (Opsional) Test cepat dengan membuka di browser responsif (device toolbar)
