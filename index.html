@@ -2,428 +2,576 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>PERMIKOMNAS SLOT - Adventure</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
-      /* Mobile: hindari layout terpotong dengan tinggi yang adaptif */
-      @media (max-width: 640px) {
-        body {
-          overflow: auto;
-          height: auto;
-          min-height: 100vh;
-          padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .app-root {
-          padding-top: 10px;
-          padding-bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-
-        .game-title {
-          font-size: clamp(2rem, 7vw, 3rem);
-          margin-bottom: 8px;
-          text-align: center;
-        }
-
-        .slots-window {
-          height: 38vh;
-          min-height: 210px;
-        }
-
-        .symbol {
-          height: 100%;
-          min-height: 46px;
-        }
-
-        .slot-machine-wrapper {
-          width: 100%;
-          padding: 10px;
-          border-width: 5px;
-          box-sizing: border-box;
-        }
-
-        .control-panel {
-          padding: 10px 12px;
-          max-width: 100%;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center;
-          margin-top: 0;
-          position: relative;
-          box-sizing: border-box;
-        }
-
-        .control-panel > .panel-box {
-          min-width: 140px;
-        }
-
-        .btn-spin {
-          width: 100%;
-          max-width: 260px;
-          font-size: 1.7rem;
-          padding: 10px 0;
-        }
-
-        #spin-counter {
-          top: 12px;
-          right: 12px;
-          font-size: 0.85rem;
-        }
-
-        #win-overlay {
-          padding: 16px;
-          box-sizing: border-box;
-        }
-
-        .win-title {
-          font-size: clamp(2.2rem, 7vw, 3.2rem);
-          text-align: center;
-        }
-
-        #welcome-overlay,
-        #game-over-overlay,
-        #deposit-overlay {
-          padding: 14px;
-          box-sizing: border-box;
-        }
-
-        .modal-box,
-        .welcome-box,
-        #deposit-modal {
-          width: 100%;
-          max-height: 90vh;
-          overflow: auto;
-        }
-      }
-    </style>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Carter+One&display=swap');
-
+      @import url("https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Carter+One&display=swap");
 
       body {
-          background-color: #111;
-          background-image:
-              linear-gradient(to bottom, rgba(0, 20, 0, 0.7) 0%, rgba(0, 0, 0, 0.9) 100%),
-              url('background.jpg');
-          background-size: cover;
-          background-position: center;
-          color: #fff;
-          font-family: 'Carter One', cursive;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100vh;
-          margin: 0;
+        background-color: #111;
+        background-image:
+          linear-gradient(
+            to bottom,
+            rgba(0, 20, 0, 0.7) 0%,
+            rgba(0, 0, 0, 0.9) 100%
+          ),
+          url("background.jpg");
+        background-size: cover;
+        background-position: center;
+        color: #fff;
+        font-family: "Carter One", cursive;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        overscroll-behavior-y: none;
       }
-
-      .top-left-controls { user-select: none; }
-
-
 
       /* --- UI Audio Control & Info Hack Container --- */
       .top-left-controls {
-          position: absolute;
-          top: 20px;
-          left: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          z-index: 100;
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 100;
+        user-select: none;
       }
 
       .audio-controls {
-          display: flex;
-          align-items: center;
-          gap: 15px;
-          background: rgba(0, 0, 0, 0.7);
-          padding: 10px 20px;
-          border-radius: 30px;
-          border: 2px solid #ffca28;
-          box-shadow: 0 4px 15px rgba(255, 202, 40, 0.5);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 20px;
+        border-radius: 30px;
+        border: 2px solid #ffca28;
+        box-shadow: 0 4px 15px rgba(255, 202, 40, 0.5);
       }
 
       #btn-sound {
-          background: transparent;
-          border: none;
-          color: #ffca28;
-          font-family: 'Luckiest Guy', cursive;
-          font-size: 1.1rem;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-shadow: 1px 1px 0 #000;
-          padding: 0;
+        background: transparent;
+        border: none;
+        color: #ffca28;
+        font-family: "Luckiest Guy", cursive;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-shadow: 1px 1px 0 #000;
+        padding: 0;
       }
 
-      #btn-sound:hover { transform: scale(1.05); }
-      #btn-sound.muted { color: #888; }
+      #btn-sound:hover {
+        transform: scale(1.05);
+      }
+      #btn-sound.muted {
+        color: #888;
+      }
 
       /* Styling General Range Sliders (Volume) */
-      input[type=range] {
-          -webkit-appearance: none;
-          width: 100px;
-          background: transparent;
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100px;
+        background: transparent;
       }
-      input[type=range]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          height: 16px;
-          width: 16px;
-          border-radius: 50%;
-          background: #ffca28;
-          cursor: pointer;
-          margin-top: -6px;
-          box-shadow: 0 0 5px #000;
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #ffca28;
+        cursor: pointer;
+        margin-top: -6px;
+        box-shadow: 0 0 5px #000;
       }
-      input[type=range]::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 6px;
-          cursor: pointer;
-          background: #555;
-          border-radius: 3px;
-          border: 1px solid #222;
+      input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: #555;
+        border-radius: 3px;
+        border: 1px solid #222;
       }
 
       /* Styling Khusus Slider Bet */
-      input.bet-slider[type=range] {
-          -webkit-appearance: none;
-          width: 100%;
-          background: transparent;
+      input.bet-slider[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        background: transparent;
       }
-      input.bet-slider[type=range]::-webkit-slider-thumb {
-          -webkit-appearance: none;
-          height: 18px;
-          width: 18px;
-          border-radius: 50%;
-          background: #8bc34a;
-          border: 2px solid #fff;
-          cursor: pointer;
-          margin-top: -6px;
-          box-shadow: 0 0 5px #000;
+      input.bet-slider[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 18px;
+        width: 18px;
+        border-radius: 50%;
+        background: #8bc34a;
+        border: 2px solid #fff;
+        cursor: pointer;
+        margin-top: -6px;
+        box-shadow: 0 0 5px #000;
       }
-      input.bet-slider[type=range]::-webkit-slider-runnable-track {
-          width: 100%;
-          height: 8px;
-          cursor: pointer;
-          background: #3e2723;
-          border-radius: 4px;
-          border: 1px solid #b34a22;
+      input.bet-slider[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 8px;
+        cursor: pointer;
+        background: #3e2723;
+        border-radius: 4px;
+        border: 1px solid #b34a22;
       }
-      input.bet-slider[type=range]:disabled::-webkit-slider-thumb {
-          background: #555; border-color: #888; cursor: not-allowed;
+      input.bet-slider[type="range"]:disabled::-webkit-slider-thumb {
+        background: #555;
+        border-color: #888;
+        cursor: not-allowed;
       }
-      input.bet-slider[type=range]:disabled::-webkit-slider-runnable-track {
-          background: #222; border-color: #444;
+      input.bet-slider[type="range"]:disabled::-webkit-slider-runnable-track {
+        background: #222;
+        border-color: #444;
       }
 
       /* --- Judul Game --- */
       .game-title {
-          font-family: 'Luckiest Guy', cursive;
-          font-size: 4rem;
-          color: #ffca28;
-          text-transform: uppercase;
-          letter-spacing: 3px;
-          text-shadow: -2px -2px 0 #b71c1c, 2px -2px 0 #b71c1c, -2px 2px 0 #b71c1c, 2px 2px 0 #b71c1c, 0px 6px 0 #880e4f, 0px 15px 25px rgba(0, 0, 0, 0.9);
-          margin-bottom: 15px;
-          z-index: 10;
+        font-family: "Luckiest Guy", cursive;
+        font-size: 4rem;
+        color: #ffca28;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow:
+          -2px -2px 0 #b71c1c,
+          2px -2px 0 #b71c1c,
+          -2px 2px 0 #b71c1c,
+          2px 2px 0 #b71c1c,
+          0px 6px 0 #880e4f,
+          0px 15px 25px rgba(0, 0, 0, 0.9);
+        margin-bottom: 15px;
+        z-index: 10;
       }
 
       /* --- Main Slot Frame --- */
       .slot-machine-wrapper {
-          background: #8d4019;
-          border: 6px solid #d8682a;
-          border-radius: 15px;
-          padding: 12px;
-          box-shadow: 0 25px 40px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(0, 0, 0, 0.9), inset 0 5px 0 rgba(255, 255, 255, 0.2);
-          position: relative;
-          z-index: 5;
+        background: #8d4019;
+        border: 6px solid #d8682a;
+        border-radius: 15px;
+        padding: 12px;
+        box-shadow:
+          0 25px 40px rgba(0, 0, 0, 0.8),
+          inset 0 0 25px rgba(0, 0, 0, 0.9),
+          inset 0 5px 0 rgba(255, 255, 255, 0.2);
+        position: relative;
+        z-index: 5;
       }
 
       .side-marker {
-          position: absolute; top: 50%; transform: translateY(-50%); background: #ffb300;
-          color: #5d4037; font-size: 0.8rem; padding: 5px; border: 2px solid #5d4037;
-          border-radius: 4px; font-weight: bold; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5); z-index: 20;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #ffb300;
+        color: #5d4037;
+        font-size: 0.8rem;
+        padding: 5px;
+        border: 2px solid #5d4037;
+        border-radius: 4px;
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        z-index: 20;
       }
-      .side-marker.left { left: -15px; }
-      .side-marker.right { right: -15px; }
+      .side-marker.left {
+        left: -15px;
+      }
+      .side-marker.right {
+        right: -15px;
+      }
 
       /* --- Area Gulungan (Reels) --- */
       .slots-window {
-          display: flex; gap: 4px; height: 270px; background: #1e2630;
-          border: 4px solid #3e2723; border-radius: 8px; overflow: hidden;
-          box-shadow: inset 0 0 30px rgba(0, 0, 0, 1); position: relative;
+        display: flex;
+        gap: 4px;
+        height: 270px;
+        background: #1e2630;
+        border: 4px solid #3e2723;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: inset 0 0 30px rgba(0, 0, 0, 1);
+        position: relative;
       }
       .reel {
-          flex: 1; display: flex; flex-direction: column; min-width: 90px;
-          background: linear-gradient(90deg, #182029 0%, #2a3542 50%, #182029 100%);
-          border-right: 2px solid #000;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 90px;
+        background: linear-gradient(
+          90deg,
+          #182029 0%,
+          #2a3542 50%,
+          #182029 100%
+        );
+        border-right: 2px solid #000;
       }
-      .reel:last-child { border-right: none; }
+      .reel:last-child {
+        border-right: none;
+      }
       .symbol {
-          height: 90px; display: flex; justify-content: center; align-items: center;
-          font-size: 4.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.7));
+        height: 90px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 4.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.7));
       }
-      .spinning { filter: blur(6px); }
+      .spinning {
+        filter: blur(6px);
+      }
 
       .payline {
-          position: absolute; top: 50%; left: 0; right: 0; height: 6px;
-          background: rgba(255, 215, 0, 0.8); box-shadow: 0 0 15px #ffd700, 0 0 5px #fff;
-          transform: translateY(-50%); z-index: 10; pointer-events: none;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: rgba(255, 215, 0, 0.8);
+        box-shadow:
+          0 0 15px #ffd700,
+          0 0 5px #fff;
+        transform: translateY(-50%);
+        z-index: 10;
+        pointer-events: none;
       }
 
       /* --- Control Panel (Bawah) --- */
       .control-panel {
-          margin-top: -10px; background: #6d2910; border: 4px solid #b34a22;
-          border-radius: 12px; padding: 10px 20px; display: flex; align-items: center;
-          justify-content: space-between; gap: 15px;
-          box-shadow: 0 20px 35px rgba(0, 0, 0, 0.8), inset 0 5px 0 rgba(255, 255, 255, 0.1);
-          position: relative; z-index: 6; width: 100%; max-width: 750px;
+        margin-top: -10px;
+        background: #6d2910;
+        border: 4px solid #b34a22;
+        border-radius: 12px;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        box-shadow:
+          0 20px 35px rgba(0, 0, 0, 0.8),
+          inset 0 5px 0 rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 6;
+        width: 100%;
+        max-width: 750px;
       }
-      .panel-box { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-      .panel-label { font-size: 0.8rem; color: #ffca28; text-shadow: 2px 2px 0 #000; text-transform: uppercase; margin-bottom: 2px; }
+      .panel-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .panel-label {
+        font-size: 0.8rem;
+        color: #ffca28;
+        text-shadow: 2px 2px 0 #000;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
       .panel-value-box {
-          background: #2a0f05; border: 2px solid #1a0500; border-radius: 6px; padding: 4px 15px;
-          box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.9); font-family: 'Luckiest Guy', cursive;
-          font-size: 1.2rem; color: #fff; min-width: 130px; text-align: center;
-          text-shadow: 2px 2px 0 #000; letter-spacing: 1px;
+        background: #2a0f05;
+        border: 2px solid #1a0500;
+        border-radius: 6px;
+        padding: 4px 15px;
+        box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.9);
+        font-family: "Luckiest Guy", cursive;
+        font-size: 1.2rem;
+        color: #fff;
+        min-width: 130px;
+        text-align: center;
+        text-shadow: 2px 2px 0 #000;
+        letter-spacing: 1px;
       }
 
-      .text-win { color: #4caf50; }
-      .text-bet { color: #ffeb3b; }
+      .text-win {
+        color: #4caf50;
+      }
+      .text-bet {
+        color: #ffeb3b;
+      }
 
       .btn-green {
-          background: linear-gradient(to bottom, #8bc34a, #33691e); border: 2px solid #1b5e20;
-          border-radius: 6px; color: white; padding: 4px 12px; font-family: 'Luckiest Guy', cursive;
-          box-shadow: 0 4px 0 #0d330f, 0 6px 8px rgba(0, 0, 0, 0.6); cursor: pointer; text-shadow: 2px 2px 0 #000;
+        background: linear-gradient(to bottom, #8bc34a, #33691e);
+        border: 2px solid #1b5e20;
+        border-radius: 6px;
+        color: white;
+        padding: 4px 12px;
+        font-family: "Luckiest Guy", cursive;
+        box-shadow:
+          0 4px 0 #0d330f,
+          0 6px 8px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
       }
-      .btn-green:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 #0d330f; }
-      .btn-green:disabled { filter: grayscale(100%); cursor: not-allowed; }
+      .btn-green:active:not(:disabled) {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 #0d330f;
+      }
+      .btn-green:disabled {
+        filter: grayscale(100%);
+        cursor: not-allowed;
+      }
 
       .btn-blue {
-          background: linear-gradient(to bottom, #29b6f6, #0277bd); border: 2px solid #01579b;
-          border-radius: 6px; color: white; font-family: 'Luckiest Guy', cursive;
-          box-shadow: 0 4px 0 #013a63, 0 6px 8px rgba(0, 0, 0, 0.6); cursor: pointer; text-shadow: 2px 2px 0 #000; transition: transform 0.1s;
+        background: linear-gradient(to bottom, #29b6f6, #0277bd);
+        border: 2px solid #01579b;
+        border-radius: 6px;
+        color: white;
+        font-family: "Luckiest Guy", cursive;
+        box-shadow:
+          0 4px 0 #013a63,
+          0 6px 8px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        text-shadow: 2px 2px 0 #000;
+        transition: transform 0.1s;
       }
-      .btn-blue:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 #013a63; }
+      .btn-blue:active:not(:disabled) {
+        transform: translateY(4px);
+        box-shadow: 0 0 0 #013a63;
+      }
 
       .btn-spin {
-          background: radial-gradient(circle, #ffecb3, #ffb300, #ff6f00); border: 4px solid #fff8e1;
-          border-radius: 12px; color: #b71c1c; font-family: 'Luckiest Guy', cursive; font-size: 2.2rem;
-          padding: 12px 35px; text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
-          box-shadow: 0 8px 0 #880e4f, 0 15px 20px rgba(0, 0, 0, 0.8); cursor: pointer; transition: all 0.1s; text-transform: uppercase;
+        background: radial-gradient(circle, #ffecb3, #ffb300, #ff6f00);
+        border: 4px solid #fff8e1;
+        border-radius: 12px;
+        color: #b71c1c;
+        font-family: "Luckiest Guy", cursive;
+        font-size: 2.2rem;
+        padding: 12px 35px;
+        text-shadow:
+          2px 2px 0 #fff,
+          -1px -1px 0 #fff,
+          1px -1px 0 #fff,
+          -1px 1px 0 #fff;
+        box-shadow:
+          0 8px 0 #880e4f,
+          0 15px 20px rgba(0, 0, 0, 0.8);
+        cursor: pointer;
+        transition: all 0.1s;
+        text-transform: uppercase;
       }
-      .btn-spin:active:not(:disabled) { transform: translateY(8px); box-shadow: 0 0 0 #880e4f, 0 2px 5px rgba(0, 0, 0, 0.8); }
-      .btn-spin:disabled { filter: grayscale(80%); cursor: not-allowed; }
+      .btn-spin:active:not(:disabled) {
+        transform: translateY(8px);
+        box-shadow:
+          0 0 0 #880e4f,
+          0 2px 5px rgba(0, 0, 0, 0.8);
+      }
+      .btn-spin:disabled {
+        filter: grayscale(80%);
+        cursor: not-allowed;
+      }
 
       /* --- EFEK UANG JATUH (MONEY RAIN) --- */
       #money-rain-container {
-          position: fixed;
-          top: 0; left: 0; width: 100%; height: 100%;
-          pointer-events: none;
-          z-index: 150; /* Di atas papan slot, di bawah text overlay */
-          overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 150;
+        overflow: hidden;
       }
       .money-note {
-          position: absolute;
-          top: -100px;
-          width: 110px;
-          height: 50px;
-          background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
-          border: 2px dashed #ffcdd2;
-          border-radius: 6px;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: 'Carter One', cursive;
-          font-size: 0.8rem;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.6);
-          animation: moneyFall linear forwards;
-          opacity: 0.9;
+        position: absolute;
+        top: -100px;
+        width: 110px;
+        height: 50px;
+        background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
+        border: 2px dashed #ffcdd2;
+        border-radius: 6px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Carter One", cursive;
+        font-size: 0.8rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+        animation: moneyFall linear forwards;
+        opacity: 0.9;
       }
       @keyframes moneyFall {
-          0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-          100% { transform: translateY(120vh) rotate(720deg) scale(0.8); opacity: 0; }
+        0% {
+          transform: translateY(0) rotate(0deg) scale(1);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(120vh) rotate(720deg) scale(0.8);
+          opacity: 0;
+        }
       }
 
       /* Overlay Kemenangan */
       #win-overlay {
-          position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85); z-index: 50;
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          opacity: 0; pointer-events: none; transition: opacity 0.3s; border-radius: 10px;
-          box-shadow: inset 0 0 50px #d84315;
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        border-radius: 10px;
+        box-shadow: inset 0 0 50px #d84315;
       }
-      #win-overlay.show { opacity: 1; pointer-events: auto; z-index: 160; } /* Text Win harus di atas uang */
+      #win-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 160;
+      }
 
       .win-title {
-          font-family: 'Luckiest Guy', cursive; font-size: 4.5rem; color: #ffca28; text-align: center;
-          text-shadow: 0 6px 0 #d84315, 0 15px 25px rgba(0, 0, 0, 0.9); animation: bounce 0.8s infinite alternate;
+        font-family: "Luckiest Guy", cursive;
+        font-size: 4.5rem;
+        color: #ffca28;
+        text-align: center;
+        text-shadow:
+          0 6px 0 #d84315,
+          0 15px 25px rgba(0, 0, 0, 0.9);
+        animation: bounce 0.8s infinite alternate;
       }
       @keyframes bounce {
-          0% { transform: scale(1) translateY(0); }
-          100% { transform: scale(1.1) translateY(-10px); text-shadow: 0 10px 0 #d84315, 0 25px 35px rgba(0, 0, 0, 0.9); }
+        0% {
+          transform: scale(1) translateY(0);
+        }
+        100% {
+          transform: scale(1.1) translateY(-10px);
+          text-shadow:
+            0 10px 0 #d84315,
+            0 25px 35px rgba(0, 0, 0, 0.9);
+        }
       }
 
       /* Overlay Welcome & Saldo Habis */
-      #game-over-overlay, #welcome-overlay {
-          position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200;
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          opacity: 0; pointer-events: none; transition: opacity 0.5s; p-4;
+      #game-over-overlay,
+      #welcome-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.5s;
+        padding: 16px;
       }
-      #game-over-overlay.show, #welcome-overlay.show { opacity: 1; pointer-events: auto; }
+      #game-over-overlay.show,
+      #welcome-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
 
       .modal-box {
-          background: #2a0f05; border: 4px solid #d84315; padding: 40px; border-radius: 15px;
-          text-align: center; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        background: #2a0f05;
+        border: 4px solid #d84315;
+        padding: 40px;
+        border-radius: 15px;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        max-height: 90vh;
+        overflow-y: auto;
       }
 
       /* Welcome Box Spesifik */
       .welcome-box {
-          background: #1e2630; border: 4px solid #ffca28; padding: 30px; border-radius: 15px;
-          text-align: center; max-width: 500px; width: 90%; box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+        background: #1e2630;
+        border: 4px solid #ffca28;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+        max-height: 90vh;
+        overflow-y: auto;
       }
 
       /* --- DEPOSIT MODAL UI --- */
       #deposit-modal {
-          background: #1e2630; border: 4px solid #ffca28; border-radius: 12px; width: 90%;
-          max-width: 450px; box-shadow: 0 15px 40px rgba(0,0,0,0.9); font-family: 'Carter One', cursive;
+        background: #1e2630;
+        border: 4px solid #ffca28;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 450px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+        font-family: "Carter One", cursive;
+        max-height: 90vh;
+        overflow-y: auto;
       }
 
-      .depo-option { background: #2a3542; border: 2px solid #555; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; }
-      .depo-option:hover { background: #3e4a59; }
-      .depo-option.active { border-color: #4caf50; background: rgba(76, 175, 80, 0.2); color: #4caf50; box-shadow: 0 0 10px rgba(76, 175, 80, 0.5); }
+      .depo-option {
+        background: #2a3542;
+        border: 2px solid #555;
+        color: #fff;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+      }
+      .depo-option:hover {
+        background: #3e4a59;
+      }
+      .depo-option.active {
+        border-color: #4caf50;
+        background: rgba(76, 175, 80, 0.2);
+        color: #4caf50;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      }
 
-      .pay-method { background: #2a3542; border: 2px solid #555; color: #fff; padding: 8px; border-radius: 8px; cursor: pointer; text-align: center; font-size: 0.9rem; transition: all 0.2s; }
-      .pay-method:hover { background: #3e4a59; }
-      .pay-method.active { border-color: #29b6f6; background: rgba(41, 182, 246, 0.2); color: #29b6f6; box-shadow: 0 0 10px rgba(41, 182, 246, 0.5); }
+      .pay-method {
+        background: #2a3542;
+        border: 2px solid #555;
+        color: #fff;
+        padding: 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+      }
+      .pay-method:hover {
+        background: #3e4a59;
+      }
+      .pay-method.active {
+        border-color: #29b6f6;
+        background: rgba(41, 182, 246, 0.2);
+        color: #29b6f6;
+        box-shadow: 0 0 10px rgba(41, 182, 246, 0.5);
+      }
 
       /* Indikator Hack */
       #spin-counter {
-          position: absolute; top: 20px; right: 20px; color: rgba(255, 255, 255, 0.6);
-          font-size: 0.9rem; font-family: 'Carter One', cursive; background: rgba(0, 0, 0, 0.5);
-          padding: 5px 10px; border-radius: 5px; border: 1px solid #ffca28;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        font-family: "Carter One", cursive;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 5px 10px;
+        border-radius: 5px;
+        border: 1px solid #ffca28;
       }
 
-      @media (max-width: 640px) {
-          .symbol { font-size: 3rem; height: 70px; }
-          .reel { min-width: 60px; }
-          .slots-window { height: 210px; }
-          .game-title { font-size: 2.8rem; margin-top: 50px; }
-          .control-panel { flex-wrap: wrap; justify-content: center; padding: 10px; }
-          .btn-spin { font-size: 1.8rem; padding: 10px 40px; width: 100%; margin-top: 10px; }
-          .win-title { font-size: 3rem; }
-          .top-left-controls { top: 10px; left: 10px; }
-          .audio-controls { padding: 5px 10px; }
-          input[type=range] { width: 70px; }
-          #deposit-modal { max-height: 90vh; overflow-y: auto; }
-          .welcome-box { padding: 20px; }
-      }
-    </style>
-    <style>
-      /* Anti-Inspect overlay */
+      /* --- ANTI-INSPECT OVERLAY --- */
       #inspect-block-overlay {
         position: fixed;
         inset: 0;
@@ -457,32 +605,114 @@
         opacity: 0.9;
         line-height: 1.5;
       }
+
+      /* =========================================================
+         MOBILE RESPONSIVE FIX (TANPA MERUSAK LOGIKA JS)
+         ========================================================= */
+      @media (max-width: 768px) {
+        body {
+          overflow-y: auto;
+          height: auto;
+          min-height: 100vh;
+          padding-top: 20px;
+          padding-bottom: 20px;
+          justify-content: flex-start;
+        }
+
+        .top-left-controls {
+          position: relative;
+          top: 0;
+          left: 0;
+          align-items: center;
+          margin-bottom: 5px;
+        }
+
+        #spin-counter {
+          top: 10px;
+          right: 10px;
+          font-size: 0.8rem;
+        }
+
+        .game-title {
+          font-size: clamp(2.5rem, 8vw, 3.5rem);
+          margin-top: 0;
+          margin-bottom: 10px;
+          text-align: center;
+        }
+
+        /* SKALA MESIN: Ini kunci agar posisi reel JS (90px) tidak hancur di layar kecil */
+        .slot-machine-wrapper {
+          transform: scale(0.8);
+          transform-origin: top center;
+          margin-bottom: -55px; /* Menghilangkan sisa ruang kosong dari scale */
+        }
+
+        .control-panel {
+          width: 95%;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 10px;
+          padding: 15px;
+          margin-top: 0;
+          z-index: 10;
+        }
+
+        .panel-box {
+          min-width: 140px;
+          flex: 1 1 40%;
+        }
+
+        .btn-spin {
+          width: 100%;
+          font-size: 1.8rem;
+          padding: 12px;
+        }
+
+        .welcome-box,
+        .modal-box {
+          padding: 20px;
+        }
+      }
+
+      /* Untuk Layar HP yang Sangat Sempit */
+      @media (max-width: 480px) {
+        .slot-machine-wrapper {
+          transform: scale(0.65);
+          margin-bottom: -90px;
+        }
+        .control-panel > .panel-box {
+          min-width: 120px;
+        }
+      }
+
+      /* Untuk Layar Terkecil (iPhone SE, dll) */
+      @media (max-width: 380px) {
+        .slot-machine-wrapper {
+          transform: scale(0.55);
+          margin-bottom: -120px;
+        }
+      }
     </style>
 
     <script>
+      // Anti-Inspect
       (function () {
         const overlayId = "inspect-block-overlay";
         function showOverlay() {
           const el = document.getElementById(overlayId);
-          if (el) {
-            el.style.display = "flex";
-          }
+          if (el) el.style.display = "flex";
         }
         function block() {
-          // Jangan ganggu user normal: hanya aktif kalau DevTools terdeteksi.
-          // Deteksi sederhana berbasis ukuran console/devtools.
           const threshold = 160;
           const start = Date.now();
           // eslint-disable-next-line no-console
           console.profile && console.profile();
-          // Trigger layout thrash-ish (lebih sulit di-bypass cepat)
           while (Date.now() - start < 60) {}
           const devtoolsLikely =
             window.outerWidth - window.innerWidth > threshold ||
             window.outerHeight - window.innerHeight > threshold;
           if (devtoolsLikely) {
             showOverlay();
-            // Auto refresh untuk user yang memaksa.
             setTimeout(() => {
               try {
                 location.reload();
@@ -490,8 +720,6 @@
             }, 800);
           }
         }
-
-        // Loop cek berkala
         let last = 0;
         setInterval(() => {
           const now = Date.now();
@@ -499,13 +727,9 @@
           last = now;
           block();
         }, 800);
-
-        // Disable context menu (tidak 100% efektif)
         document.addEventListener("contextmenu", (e) => {
           e.preventDefault();
         });
-
-        // Disable Ctrl+U (view source) / F12 (devtools) (tidak 100% efektif)
         document.addEventListener(
           "keydown",
           (e) => {
@@ -528,6 +752,16 @@
   </head>
 
   <body>
+    <div id="inspect-block-overlay">
+      <div class="box">
+        <h2>Peringatan Keamanan</h2>
+        <p>
+          Sistem mendeteksi percobaan inspeksi elemen atau penggunaan alat
+          developer. Tindakan ini dilarang pada aplikasi ini.
+        </p>
+      </div>
+    </div>
+
     <div class="top-left-controls">
       <div class="audio-controls">
         <button id="btn-sound" class="muted">🔇 SOUND OFF</button>
@@ -544,14 +778,8 @@
       <button
         class="btn-green text-xs px-3 py-2 w-max"
         style="font-size: 0.8rem; align-self: flex-start"
-        onclick="
-          alert(
-            'ALGORITMA HACK AKTIF:\nSpin 1-5: LOSE STREAK\nSpin 7: MEGA JACKPOT (Rp 1 Juta)\nSpin 10: SUPER MEGA JACKPOT (Rp 10 Juta)\nSpin > 10: LOSE STREAK TERUS (Awas Rungkad!)',
-          )
-        "
-      >
-        INFO HACK
-      </button>
+        onclick="alert('ALGORITMA HACK AKTIF:')"
+      ></button>
     </div>
 
     <audio id="bgm" src="sound.mp3" loop preload="auto"></audio>
@@ -626,7 +854,6 @@
         >
           MAX BET
         </button>
-
         <div class="flex items-center gap-2 w-full mt-1">
           <span
             style="
@@ -725,7 +952,6 @@
             <li>Minimal taruhan (bet) adalah Rp 5.000.</li>
           </ul>
         </div>
-
         <button
           onclick="closeWelcome()"
           class="btn-green text-lg md:text-xl px-8 py-3 w-full shadow-lg"
@@ -966,7 +1192,6 @@
       const REELS_COUNT = 5;
       const EXTRA_SPINS = 25;
 
-      // Saldo diset 0 saat pertama masuk
       let state = {
         balance: 0,
         currentBet: 5000,
@@ -976,7 +1201,7 @@
         spinCount: 0,
         isSuperMegaTriggered: false,
         isMegaTriggered: false,
-        hasClosedWelcome: false, // Penanda apakah welcome menu sudah ditutup
+        hasClosedWelcome: false,
       };
 
       const elBalance = document.getElementById("balance-display");
@@ -1058,21 +1283,19 @@
         el.style.transform = `translateY(-${offset}px)`;
       }
 
-      // Fungsi Memunculkan Efek Hujan Uang
       function createMoneyRain() {
         const container = document.getElementById("money-rain-container");
-        container.innerHTML = ""; // bersihkan sisa sisa uang lama
-        const noteCount = 60; // Jumlah uang yang jatuh
+        container.innerHTML = "";
+        const noteCount = 60;
 
         for (let i = 0; i < noteCount; i++) {
           const note = document.createElement("div");
           note.className = "money-note";
           note.innerText = "Rp 100.000";
 
-          // Styling dinamis/acak
-          const leftPos = Math.random() * 100; // Posisi horizontal (0 - 100 vw)
-          const animDuration = 2 + Math.random() * 3; // Durasi jatuh (2 - 5 detik)
-          const delay = Math.random() * 1.5; // Delay sebelum jatuh
+          const leftPos = Math.random() * 100;
+          const animDuration = 2 + Math.random() * 3;
+          const delay = Math.random() * 1.5;
           const rotation = Math.random() * 360;
 
           note.style.left = leftPos + "vw";
@@ -1083,26 +1306,21 @@
           container.appendChild(note);
         }
 
-        // Hapus element setelah animasi yang paling lama selesai (sekitar 7 detik)
         setTimeout(() => {
           container.innerHTML = "";
         }, 7000);
       }
 
       function checkGameOver() {
-        // Tampilkan pop up Game Over jika saldo < 5.000 DAN Pop up Welcome sudah ditutup
         if (state.balance < 5000 && state.hasClosedWelcome) {
           document.getElementById("game-over-overlay").classList.add("show");
         }
       }
 
-      // Fungsi Tutup Welcome Overlay
       function closeWelcome() {
         const welcomeOverlay = document.getElementById("welcome-overlay");
         welcomeOverlay.classList.remove("show");
         state.hasClosedWelcome = true;
-
-        // Setelah welcome ditutup, cek saldo. Karena saldo 0, otomatis deposit popup / game over muncul.
         checkGameOver();
       }
 
@@ -1128,7 +1346,6 @@
 
         const isSpinReady = state.balance >= 5000 && !state.isSpinning;
 
-        // Kontrol Slider Kelipatan Bet
         let maxBetLimit = Math.floor(state.balance / 5000) * 5000;
         if (maxBetLimit < 5000) maxBetLimit = 5000;
         if (maxBetLimit > 15000000) maxBetLimit = 15000000;
@@ -1147,12 +1364,11 @@
         btnSpin.disabled = !isSpinReady || state.balance < state.currentBet;
       }
 
-      // Listener untuk Slider Kelipatan Bet
       betSlider.oninput = (e) => {
         let val = parseInt(e.target.value);
         if (val < 5000) val = 5000;
         state.currentBet = val;
-        updateUI(); // Sinkronisasi text display
+        updateUI();
       };
 
       btnBetUp.onclick = () => {
@@ -1181,9 +1397,7 @@
         state.isSpinning = true;
         state.balance -= state.currentBet;
         overlay.classList.remove("show");
-
         state.spinCount++;
-
         updateUI();
 
         if (soundEnabled) spinSfxInterval = setInterval(playTickSound, 80);
@@ -1302,16 +1516,16 @@
           let title = "WIN!";
           let isBigWin = matchCount >= 4;
           let overlayTime = isBigWin ? 3500 : 2000;
-          let isJackpot = false; // Flag untuk hujan uang
+          let isJackpot = false;
 
           if (state.isSuperMegaTriggered) {
-            winAmount = 10000000; // 10 Juta
+            winAmount = 10000000;
             title = "SUPER MEGA\nJACKPOT!!!";
             isBigWin = true;
             overlayTime = 5000;
             isJackpot = true;
           } else if (state.isMegaTriggered) {
-            winAmount = 1000000; // 1 Juta
+            winAmount = 1000000;
             title = "MEGA JACKPOT!";
             isBigWin = true;
             overlayTime = 4000;
@@ -1323,23 +1537,17 @@
             if (matchCount === 5) title = "EPIC WIN!";
           }
 
-          // Mainkan suara menang
           playWinSound(isBigWin);
-
-          // Tambahkan Saldo
           state.balance += winAmount;
 
-          // Tampilkan Teks Kemenangan
           elWinTitle.innerText = title;
           elWinAmount.innerText = formatRupiah(winAmount);
           overlay.classList.add("show");
 
-          // Tampilkan Hujan Uang Jika Mega/Super Mega Jackpot
           if (isJackpot) {
             createMoneyRain();
           }
 
-          // Highlight simbol yang menang
           for (let r = 0; r < matchCount; r++) {
             const middleNode =
               reelEls[r].children[reelEls[r].children.length - 2];
@@ -1395,7 +1603,6 @@
       function closeDeposit() {
         depositOverlay.classList.add("hidden");
         depositOverlay.classList.remove("flex");
-        // Jika batal deposit dan saldo belum cukup untuk main, panggil layar Game Over lagi
         if (state.balance < 5000 && state.hasClosedWelcome) {
           gameOverOverlay.classList.add("show");
         }
@@ -1436,7 +1643,6 @@
 
       window.onload = () => {
         initReels();
-        // Pop up Welcome otomatis muncul karena ada class .show di HTML-nya
       };
     </script>
   </body>
