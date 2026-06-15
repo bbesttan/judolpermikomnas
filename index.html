@@ -751,6 +751,45 @@
         text-shadow: 0 0 15px #ffca28, 0 0 5px #fff;
         z-index: 10;
       }
+      .shooting-star {
+        position: absolute;
+        top: -10px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 
+          0 0 10px #ffca28, 
+          0 0 20px #ffca28, 
+          0 0 30px #fff;
+        pointer-events: none;
+        z-index: 140;
+      }
+      .border-sparkle {
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 
+          0 0 8px #ffca28, 
+          0 0 16px #e040fb, 
+          0 0 24px #fff;
+        pointer-events: none;
+        z-index: 100;
+      }
+      @keyframes sparkleFloat {
+        0% {
+          transform: translate(0, 0) scale(0.2);
+          opacity: 0;
+        }
+        20% {
+          opacity: 1;
+        }
+        80% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--dx, 0px), var(--dy, 0px)) scale(1.2);
+          opacity: 0;
+        }
+      }
       @keyframes windowShake {
         0% { transform: translate(0, 0) scale(1); }
         25% { transform: translate(-1px, 1px) scale(1.005); }
@@ -764,6 +803,22 @@
         50% { transform: scale(1) rotate(0deg); }
         75% { transform: scale(1.15) rotate(5deg); }
         100% { transform: scale(1) rotate(0deg); }
+      }
+      @keyframes shootingStarAnimation {
+        0% {
+          transform: translate(0, 0) rotate(-45deg) scale(1);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-30vw, 110vh) rotate(-45deg) scale(0.2);
+          opacity: 0;
+        }
       }
     </style>
 
@@ -1028,6 +1083,19 @@
               dari Besttan
             </li>
           </ul>
+
+          <h4 class="text-[#ffca28] text-sm mb-2 flex items-center gap-2" style="font-family: 'Carter One', cursive">
+            🪙 INFORMASI SIMBOL & NILAI KELIPATAN:
+          </h4>
+          <div class="grid grid-cols-2 gap-1.5 text-gray-200 text-xs mb-4 p-2 bg-[#1a0500] rounded border border-[#5d4037] font-sans">
+            <div class="flex items-center gap-1">🐼 Panda: <span class="text-[#ffca28] font-bold">10x</span></div>
+            <div class="flex items-center gap-1">🗿 Relic: <span class="text-[#ffca28] font-bold">5x</span></div>
+            <div class="flex items-center gap-1">💰 Chest: <span class="text-[#ffca28] font-bold">3x</span></div>
+            <div class="flex items-center gap-1">🪙 Coin: <span class="text-[#ffca28] font-bold">2x</span></div>
+            <div class="flex items-center gap-1">💎 Gem: <span class="text-[#ffca28] font-bold">1x</span></div>
+            <div class="flex items-center gap-1">🧭 Compass: <span class="text-[#ffca28] font-bold">0.5x</span></div>
+            <div class="col-span-2 text-[#e040fb] font-bold flex items-center gap-1">🌟 Scatter: 10x Spin Gratis (Dapat 3+ Simbol)</div>
+          </div>
 
           <h4
             class="text-[#8bc34a] text-lg mb-2 flex items-center gap-2"
@@ -1381,8 +1449,17 @@
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
-            if (sym.icon === "🌟") div.classList.add("scatter-active");
-            div.innerText = sym.icon;
+            if (sym.icon === "🌟") {
+              div.classList.add("scatter-active");
+              div.innerHTML = `
+                <div class="h-[90px] w-full flex flex-col items-center justify-center relative">
+                  <span class="leading-none text-[3.8rem] animate-pulse">🌟</span>
+                  <span class="text-[8px] text-[#ffca28] font-bold tracking-wider select-none bg-black/70 px-1.5 py-0.5 rounded border border-[#ffca28]/40 absolute bottom-1.5" style="font-family: 'Luckiest Guy', cursive; text-shadow: 1px 1px 0 #000; z-index: 1;">SCATTER</span>
+                </div>
+              `;
+            } else {
+              div.innerText = sym.icon;
+            }
             reelEls[r].appendChild(div);
           }
           state.reelsPos[r] = 1;
@@ -1598,27 +1675,53 @@
           ];
           state.isSuperMegaTriggered = true;
         } else if (state.currentBet === 670000) {
-          // Scatter 15x
-          let scatterSym = SYMBOLS.find((sym) => sym.icon === "🌟");
-          let otherSym = SYMBOLS.find((sym) => sym.icon === "💎");
-          finalResults = [
-            scatterSym,
-            otherSym,
-            scatterSym,
-            otherSym,
-            scatterSym,
-          ];
+          if (state.inFreeSpins) {
+            if (state.freeSpinsRemaining === 7 || state.freeSpinsRemaining === 3) {
+              // Kemenangan Epic Win (5-match Gem 💎)
+              let targetSymbol = SYMBOLS.find((sym) => sym.icon === "💎");
+              finalResults = [
+                targetSymbol,
+                targetSymbol,
+                targetSymbol,
+                targetSymbol,
+                targetSymbol,
+              ];
+            } else {
+              // Spin acak biasa selama Free Spins
+              for (let i = 0; i < REELS_COUNT; i++) {
+                finalResults.push(getRandomSymbol());
+              }
+            }
+          } else {
+            // Pemicu Scatter 10x (dari game utama)
+            let scatterSym = SYMBOLS.find((sym) => sym.icon === "🌟");
+            let otherSym = SYMBOLS.find((sym) => sym.icon === "💎");
+            finalResults = [
+              scatterSym,
+              otherSym,
+              scatterSym,
+              otherSym,
+              scatterSym,
+            ];
+          }
         } else if (state.currentBet === 675000) {
-          // Super Mega Jackpot (100x) + Scatter 10x
-          let targetSymbol = SYMBOLS.find((sym) => sym.icon === "🐼");
-          finalResults = [
-            targetSymbol,
-            targetSymbol,
-            targetSymbol,
-            targetSymbol,
-            targetSymbol,
-          ];
-          state.isSuperMegaTriggered = true;
+          if (state.inFreeSpins) {
+            // Spin acak biasa selama Free Spins
+            for (let i = 0; i < REELS_COUNT; i++) {
+              finalResults.push(getRandomSymbol());
+            }
+          } else {
+            // Pemicu Super Mega Jackpot (100x) + Scatter 10x (dari game utama)
+            let targetSymbol = SYMBOLS.find((sym) => sym.icon === "🐼");
+            finalResults = [
+              targetSymbol,
+              targetSymbol,
+              targetSymbol,
+              targetSymbol,
+              targetSymbol,
+            ];
+            state.isSuperMegaTriggered = true;
+          }
         } else {
           for (let i = 0; i < REELS_COUNT; i++) {
             finalResults.push(getRandomSymbol());
@@ -1635,8 +1738,17 @@
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
-            if (sym.icon === "🌟") div.classList.add("scatter-active");
-            div.innerText = sym.icon;
+            if (sym.icon === "🌟") {
+              div.classList.add("scatter-active");
+              div.innerHTML = `
+                <div class="h-[90px] w-full flex flex-col items-center justify-center relative">
+                  <span class="leading-none text-[3.8rem] animate-pulse">🌟</span>
+                  <span class="text-[8px] text-[#ffca28] font-bold tracking-wider select-none bg-black/70 px-1.5 py-0.5 rounded border border-[#ffca28]/40 absolute bottom-1.5" style="font-family: 'Luckiest Guy', cursive; text-shadow: 1px 1px 0 #000; z-index: 1;">SCATTER</span>
+                </div>
+              `;
+            } else {
+              div.innerText = sym.icon;
+            }
             el.appendChild(div);
           }
 
@@ -1653,8 +1765,17 @@
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
-            if (sym.icon === "🌟") div.classList.add("scatter-active");
-            div.innerText = sym.icon;
+            if (sym.icon === "🌟") {
+              div.classList.add("scatter-active");
+              div.innerHTML = `
+                <div class="h-[90px] w-full flex flex-col items-center justify-center relative">
+                  <span class="leading-none text-[3.8rem] animate-pulse">🌟</span>
+                  <span class="text-[8px] text-[#ffca28] font-bold tracking-wider select-none bg-black/70 px-1.5 py-0.5 rounded border border-[#ffca28]/40 absolute bottom-1.5" style="font-family: 'Luckiest Guy', cursive; text-shadow: 1px 1px 0 #000; z-index: 1;">SCATTER</span>
+                </div>
+              `;
+            } else {
+              div.innerText = sym.icon;
+            }
             el.appendChild(div);
           });
 
@@ -1812,6 +1933,110 @@
         };
       }
 
+      let shootingStarsInterval = null;
+      let borderSparkleInterval = null;
+
+      function startShootingStars() {
+        if (shootingStarsInterval) clearInterval(shootingStarsInterval);
+        const container = document.getElementById("money-rain-container");
+        
+        shootingStarsInterval = setInterval(() => {
+          if (!state.inFreeSpins) {
+            clearInterval(shootingStarsInterval);
+            shootingStarsInterval = null;
+            return;
+          }
+          
+          const starCount = 2 + Math.floor(Math.random() * 3);
+          for (let i = 0; i < starCount; i++) {
+            const star = document.createElement("div");
+            star.className = "shooting-star";
+            
+            const startLeft = Math.random() * 120 - 20;
+            const animDuration = 1.0 + Math.random() * 1.5;
+            const size = 3 + Math.random() * 5;
+            
+            star.style.left = startLeft + "vw";
+            star.style.width = size + "px";
+            star.style.height = size + "px";
+            star.style.animation = `shootingStarAnimation ${animDuration}s linear forwards`;
+            
+            container.appendChild(star);
+            
+            setTimeout(() => {
+              star.remove();
+            }, animDuration * 1000);
+          }
+        }, 150);
+      }
+
+      function startBorderSparkles() {
+        if (borderSparkleInterval) clearInterval(borderSparkleInterval);
+        const wrapper = document.querySelector(".slot-machine-wrapper");
+        if (!wrapper) return;
+
+        borderSparkleInterval = setInterval(() => {
+          if (!state.inFreeSpins) {
+            clearInterval(borderSparkleInterval);
+            borderSparkleInterval = null;
+            return;
+          }
+
+          const sides = ["top", "bottom", "left", "right"];
+          sides.forEach(side => {
+            const sparkle = document.createElement("div");
+            sparkle.className = "border-sparkle";
+            
+            const size = 3 + Math.random() * 5;
+            sparkle.style.width = size + "px";
+            sparkle.style.height = size + "px";
+            
+            let x = 0;
+            let y = 0;
+            let dx = (Math.random() - 0.5) * 30;
+            let dy = (Math.random() - 0.5) * 30;
+            
+            if (side === "top") {
+              x = Math.random() * 100;
+              y = -5;
+              dy = -25 - Math.random() * 30;
+            } else if (side === "bottom") {
+              x = Math.random() * 100;
+              y = 100;
+              dy = 15 + Math.random() * 30;
+            } else if (side === "left") {
+              x = -5;
+              y = Math.random() * 100;
+              dx = -25 - Math.random() * 30;
+            } else if (side === "right") {
+              x = 100;
+              y = Math.random() * 100;
+              dx = 15 + Math.random() * 30;
+            }
+            
+            if (side === "top" || side === "bottom") {
+              sparkle.style.left = `${x}%`;
+              sparkle.style.top = `${y}px`;
+            } else {
+              sparkle.style.left = `${x}px`;
+              sparkle.style.top = `${y}%`;
+            }
+            
+            sparkle.style.setProperty('--dx', `${dx}px`);
+            sparkle.style.setProperty('--dy', `${dy}px`);
+            
+            const animDuration = 0.8 + Math.random() * 0.8;
+            sparkle.style.animation = `sparkleFloat ${animDuration}s ease-out forwards`;
+            
+            wrapper.appendChild(sparkle);
+            
+            setTimeout(() => {
+              sparkle.remove();
+            }, animDuration * 1000);
+          });
+        }, 100);
+      }
+
       function evaluateWin(results) {
         state.isSpinning = false;
 
@@ -1828,8 +2053,8 @@
 
         let winAmount = 0;
         let title = "WIN!";
-        let isBigWin = matchCount >= 4;
-        let overlayTime = isBigWin ? 3500 : 2000;
+        let isBigWin = false;
+        let overlayTime = 2000;
         let isJackpot = false;
 
         if (state.isSuperMegaTriggered) {
@@ -1846,9 +2071,22 @@
           isJackpot = true;
         } else if (matchCount >= 3) {
           let finalMultiplier = winningSymbol.baseMultiplier * matchCount;
-          winAmount = state.currentBet * finalMultiplier;
-          if (matchCount === 4) title = "BIG WIN!";
-          if (matchCount === 5) title = "EPIC WIN!";
+          
+          let rand = Math.random();
+          if (matchCount === 5 || rand < 0.2) {
+            winAmount = state.currentBet * finalMultiplier * 5;
+            title = "EPIC WIN! (x5)";
+            isBigWin = true;
+            overlayTime = 3500;
+          } else if (matchCount === 4 || (rand >= 0.2 && rand < 0.5)) {
+            winAmount = state.currentBet * finalMultiplier * 3;
+            title = "BIG WIN! (x3)";
+            isBigWin = true;
+            overlayTime = 3500;
+          } else {
+            winAmount = state.currentBet * finalMultiplier;
+            title = "WIN!";
+          }
         }
 
         // Hitung scatter di seluruh area layar yang terlihat
@@ -1985,6 +2223,9 @@
         document.querySelector(".game-title").classList.add("free-spins-active");
         document.querySelector(".slots-window").classList.add("free-spins-active");
 
+        startShootingStars();
+        startBorderSparkles();
+
         updateUI();
         startSpinProcess();
       };
@@ -2000,6 +2241,15 @@
         document.querySelector(".slot-machine-wrapper").classList.remove("free-spins-active");
         document.querySelector(".game-title").classList.remove("free-spins-active");
         document.querySelector(".slots-window").classList.remove("free-spins-active");
+
+        if (shootingStarsInterval) {
+          clearInterval(shootingStarsInterval);
+          shootingStarsInterval = null;
+        }
+        if (borderSparkleInterval) {
+          clearInterval(borderSparkleInterval);
+          borderSparkleInterval = null;
+        }
 
         updateUI();
         checkGameOver();
