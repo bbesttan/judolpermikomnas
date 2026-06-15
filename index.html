@@ -412,28 +412,19 @@
       .money-note {
         position: absolute;
         top: -100px;
-        width: 110px;
-        height: 50px;
-        background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%);
-        border: 2px dashed #ffcdd2;
-        border-radius: 6px;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "Carter One", cursive;
-        font-size: 0.8rem;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
         animation: moneyFall linear forwards;
-        opacity: 0.9;
+        opacity: 0.95;
+        pointer-events: none;
+        z-index: 150;
       }
       @keyframes moneyFall {
         0% {
-          transform: translateY(0) rotate(0deg) scale(1);
+          transform: translateY(0) rotate(var(--start-rot, 0deg)) scale(1);
           opacity: 1;
         }
         100% {
-          transform: translateY(120vh) rotate(720deg) scale(0.8);
+          transform: translateY(120vh) rotate(var(--end-rot, 720deg)) scale(0.8);
           opacity: 0;
         }
       }
@@ -803,7 +794,7 @@
 
     <div class="top-left-controls">
       <div class="audio-controls">
-        <button id="btn-sound" class="muted">🔇 SOUND OFF</button>
+        <button id="btn-sound">🔊 SOUND ON</button>
         <input
           type="range"
           id="volume-slider"
@@ -923,7 +914,23 @@
         </div>
       </div>
 
-      <button id="btn-spin" class="btn-spin">SPIN</button>
+      <div class="flex flex-col items-center gap-1.5 w-full md:w-auto">
+        <!-- Auto Spin Bar -->
+        <div id="auto-spin-container" class="flex items-center justify-between w-full bg-[#2a0f05] border-2 border-[#ffca28] rounded-lg px-2 py-1 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] gap-2">
+          <span class="text-[10px] text-[#ffca28] font-bold tracking-wider" style="font-family: 'Luckiest Guy', cursive; text-shadow: 1px 1px 0 #000;">AUTO SPIN</span>
+          <div class="flex items-center gap-1.5">
+            <select id="auto-spin-select" class="bg-[#1a0500] text-[#ffca28] border border-[#5d4037] rounded text-[10px] px-1 py-0.5 font-bold outline-none cursor-pointer">
+              <option value="inf" class="bg-[#1a0500] text-[#ffca28]">∞</option>
+              <option value="10" class="bg-[#1a0500] text-[#ffca28]">10</option>
+              <option value="25" class="bg-[#1a0500] text-[#ffca28]">25</option>
+              <option value="50" class="bg-[#1a0500] text-[#ffca28]">50</option>
+              <option value="100" class="bg-[#1a0500] text-[#ffca28]">100</option>
+            </select>
+            <button id="btn-auto-toggle" class="btn-green text-[9px] px-2 py-0.5 shadow-none" style="font-size: 0.7rem; padding: 2px 6px;">START</button>
+          </div>
+        </div>
+        <button id="btn-spin" class="btn-spin w-full">SPIN</button>
+      </div>
     </div>
 
     <div id="welcome-overlay" class="show z-[400]">
@@ -1104,7 +1111,7 @@
 
     <script>
       // --- KONFIGURASI AUDIO & VOLUME ---
-      let soundEnabled = false;
+      let soundEnabled = true;
       let audioCtx = null;
       let spinSfxInterval = null;
 
@@ -1245,6 +1252,12 @@
         hasClosedWelcome: false,
       };
 
+      let autoSpinState = {
+        active: false,
+        count: 0,
+        timer: null
+      };
+
       const elBalance = document.getElementById("balance-display");
       const elBet = document.getElementById("bet-display");
       const btnSpin = document.getElementById("btn-spin");
@@ -1315,21 +1328,27 @@
         const noteCount = 60;
 
         for (let i = 0; i < noteCount; i++) {
-          const note = document.createElement("div");
-          note.className = "money-note";
-          note.innerText = "Rp 100.000";
+          const img = document.createElement("img");
+          img.src = "rupiah.png";
+          img.className = "money-note";
 
           const leftPos = Math.random() * 100;
           const animDuration = 2 + Math.random() * 3;
           const delay = Math.random() * 1.5;
           const rotation = Math.random() * 360;
 
-          note.style.left = leftPos + "vw";
-          note.style.animationDuration = animDuration + "s";
-          note.style.animationDelay = delay + "s";
-          note.style.transform = `rotate(${rotation}deg)`;
+          img.style.left = leftPos + "vw";
+          img.style.animationDuration = animDuration + "s";
+          img.style.animationDelay = delay + "s";
 
-          container.appendChild(note);
+          const width = 80 + Math.random() * 40;
+          img.style.width = width + "px";
+          img.style.height = "auto";
+
+          img.style.setProperty('--start-rot', `${rotation}deg`);
+          img.style.setProperty('--end-rot', `${rotation + 360 + Math.random() * 360}deg`);
+
+          container.appendChild(img);
         }
 
         setTimeout(() => {
@@ -1360,7 +1379,7 @@
         spinCounterEl.style.border = "1px solid #ffca28";
         spinCounterEl.style.textShadow = "none";
 
-        const isSpinReady = state.balance >= 5000 && !state.isSpinning;
+        const isSpinReady = state.balance >= 5000 && !state.isSpinning && !autoSpinState.active;
 
         let maxBetLimit = Math.floor(state.balance / 5000) * 5000;
         if (maxBetLimit < 5000) maxBetLimit = 5000;
@@ -1370,14 +1389,25 @@
         betSlider.value = state.currentBet;
         betSlider.disabled = !isSpinReady;
 
-        btnBetDown.disabled = state.currentBet <= 5000 || state.isSpinning;
+        btnBetDown.disabled = state.currentBet <= 5000 || state.isSpinning || autoSpinState.active;
         btnBetUp.disabled =
           state.currentBet >= state.balance ||
           state.currentBet >= 15000000 ||
-          state.isSpinning;
+          state.isSpinning ||
+          autoSpinState.active;
 
         btnMaxBet.disabled = !isSpinReady;
-        btnSpin.disabled = !isSpinReady || state.balance < state.currentBet;
+
+        if (autoSpinState.active) {
+          btnSpin.disabled = false;
+        } else {
+          btnSpin.disabled = !isSpinReady || state.balance < state.currentBet;
+        }
+
+        const autoSelectEl = document.getElementById("auto-spin-select");
+        if (autoSelectEl) {
+          autoSelectEl.disabled = autoSpinState.active;
+        }
       }
 
       betSlider.oninput = (e) => {
@@ -1407,7 +1437,7 @@
         updateUI();
       };
 
-      btnSpin.onclick = () => {
+      function startSpinProcess() {
         if (state.isSpinning || state.balance < state.currentBet) return;
 
         state.isSpinning = true;
@@ -1508,7 +1538,126 @@
             updateReelPosition(r, state.reelsPos[r], false);
           }
         }, totalAnimTime + 200);
+      }
+
+      btnSpin.onclick = () => {
+        if (autoSpinState.active) {
+          stopAutoSpin();
+          return;
+        }
+        startSpinProcess();
       };
+
+      // --- LOGIKA AUTO SPIN ---
+      function startAutoSpin() {
+        if (state.balance < state.currentBet) {
+          openDeposit();
+          return;
+        }
+        autoSpinState.active = true;
+        let val = document.getElementById("auto-spin-select").value;
+        if (val === "inf") {
+          autoSpinState.count = -1;
+        } else {
+          autoSpinState.count = parseInt(val);
+        }
+
+        const btnAutoToggle = document.getElementById("btn-auto-toggle");
+        if (btnAutoToggle) {
+          btnAutoToggle.innerText = autoSpinState.count > 0 ? `STOP (${autoSpinState.count})` : "STOP";
+          btnAutoToggle.style.background = "linear-gradient(to bottom, #ef5350, #c62828)";
+          btnAutoToggle.style.borderColor = "#b71c1c";
+          btnAutoToggle.style.boxShadow = "0 4px 0 #5f0909, 0 6px 8px rgba(0,0,0,0.6)";
+        }
+
+        btnSpin.innerText = "STOP";
+        btnSpin.style.background = "radial-gradient(circle, #ffcdd2, #e57373, #c62828)";
+        btnSpin.style.color = "#fff";
+        btnSpin.style.textShadow = "2px 2px 0 #000";
+        btnSpin.style.border = "4px solid #ffcdd2";
+        btnSpin.style.boxShadow = "0 8px 0 #5f0909, 0 15px 20px rgba(0, 0, 0, 0.8)";
+
+        updateUI();
+
+        if (!state.isSpinning) {
+          triggerNextAutoSpin();
+        }
+      }
+
+      function stopAutoSpin() {
+        autoSpinState.active = false;
+        autoSpinState.count = 0;
+        if (autoSpinState.timer) {
+          clearTimeout(autoSpinState.timer);
+          autoSpinState.timer = null;
+        }
+
+        const btnAutoToggle = document.getElementById("btn-auto-toggle");
+        if (btnAutoToggle) {
+          btnAutoToggle.innerText = "START";
+          btnAutoToggle.style.background = "";
+          btnAutoToggle.style.borderColor = "";
+          btnAutoToggle.style.boxShadow = "";
+        }
+
+        btnSpin.innerText = "SPIN";
+        btnSpin.style.background = "";
+        btnSpin.style.color = "";
+        btnSpin.style.textShadow = "";
+        btnSpin.style.border = "";
+        btnSpin.style.boxShadow = "";
+
+        updateUI();
+      }
+
+      function checkAndTriggerAutoSpin() {
+        if (!autoSpinState.active) return;
+
+        if (autoSpinState.count > 0) {
+          autoSpinState.count--;
+          
+          const btnAutoToggle = document.getElementById("btn-auto-toggle");
+          if (btnAutoToggle) {
+            btnAutoToggle.innerText = `STOP (${autoSpinState.count})`;
+          }
+
+          if (autoSpinState.count === 0) {
+            stopAutoSpin();
+            return;
+          }
+        }
+
+        if (state.balance < state.currentBet) {
+          stopAutoSpin();
+          checkGameOver();
+          return;
+        }
+
+        autoSpinState.timer = setTimeout(() => {
+          if (autoSpinState.active && !state.isSpinning) {
+            triggerNextAutoSpin();
+          }
+        }, 800);
+      }
+
+      function triggerNextAutoSpin() {
+        if (state.isSpinning || state.balance < state.currentBet) {
+          stopAutoSpin();
+          return;
+        }
+        startSpinProcess();
+      }
+
+      const btnAutoToggleEl = document.getElementById("btn-auto-toggle");
+      if (btnAutoToggleEl) {
+        btnAutoToggleEl.onclick = () => {
+          if (autoSpinState.active) {
+            stopAutoSpin();
+          } else {
+            startAutoSpin();
+          }
+        };
+      }
 
       function evaluateWin(results) {
         state.isSpinning = false;
@@ -1532,13 +1681,13 @@
           let isJackpot = false;
 
           if (state.isSuperMegaTriggered) {
-            winAmount = 10000000;
+            winAmount = state.currentBet * 100;
             title = "SUPER MEGA\nJACKPOT!!!";
             isBigWin = true;
             overlayTime = 5000;
             isJackpot = true;
           } else if (state.isMegaTriggered) {
-            winAmount = 1000000;
+            winAmount = state.currentBet * 10;
             title = "MEGA JACKPOT!";
             isBigWin = true;
             overlayTime = 4000;
@@ -1588,10 +1737,12 @@
             elBalance.style.color = "#fff";
             elBalance.style.textShadow = "2px 2px 0 #000";
             checkGameOver();
+            checkAndTriggerAutoSpin();
           }, overlayTime);
         } else {
           updateUI();
           checkGameOver();
+          checkAndTriggerAutoSpin();
         }
       }
 
@@ -1654,8 +1805,34 @@
         }, 2000);
       };
 
+      function startBgm() {
+        if (soundEnabled) {
+          bgm.play().then(() => {
+            const btnSound = document.getElementById("btn-sound");
+            if (btnSound) {
+              btnSound.innerText = "🔊 SOUND ON";
+              btnSound.classList.remove("muted");
+            }
+          }).catch((e) => {
+            console.log("Autoplay blocked, waiting for user interaction:", e);
+          });
+          if (!audioCtx)
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          else if (audioCtx.state === "suspended") audioCtx.resume();
+        }
+      }
+
       window.onload = () => {
         initReels();
+        startBgm();
+
+        const handleInteraction = () => {
+          startBgm();
+          document.removeEventListener("click", handleInteraction);
+          document.removeEventListener("keydown", handleInteraction);
+        };
+        document.addEventListener("click", handleInteraction);
+        document.addEventListener("keydown", handleInteraction);
       };
     </script>
   </body>
