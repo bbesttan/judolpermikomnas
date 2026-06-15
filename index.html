@@ -722,6 +722,49 @@
           transform-origin: top center;
         }
       }
+      .slot-machine-wrapper.free-spins-active {
+        background: #4a148c; /* Dark Purple */
+        border-color: #ab47bc; /* Purple Sparkle */
+        box-shadow:
+          0 0 30px #ab47bc,
+          0 25px 40px rgba(0, 0, 0, 0.8),
+          inset 0 0 25px rgba(0, 0, 0, 0.9);
+      }
+      .game-title.free-spins-active {
+        color: #e040fb;
+        text-shadow:
+          -2px -2px 0 #4a148c,
+          2px -2px 0 #4a148c,
+          -2px 2px 0 #4a148c,
+          2px 2px 0 #4a148c,
+          0px 6px 0 #311b92,
+          0px 15px 25px rgba(0, 0, 0, 0.9);
+      }
+      .slots-window.free-spins-active {
+        animation: windowShake 0.4s infinite linear;
+        border-color: #e040fb !important;
+        box-shadow: inset 0 0 30px rgba(224, 64, 251, 0.6), 0 0 15px rgba(224, 64, 251, 0.4);
+      }
+      .symbol.scatter-active {
+        animation: scatterPulse 1.2s infinite ease-in-out;
+        color: #ffd700;
+        text-shadow: 0 0 15px #ffca28, 0 0 5px #fff;
+        z-index: 10;
+      }
+      @keyframes windowShake {
+        0% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(-1px, 1px) scale(1.005); }
+        50% { transform: translate(1px, -1px) scale(1); }
+        75% { transform: translate(-1px, -1px) scale(1.005); }
+        100% { transform: translate(0, 0) scale(1); }
+      }
+      @keyframes scatterPulse {
+        0% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.15) rotate(-5deg); }
+        50% { transform: scale(1) rotate(0deg); }
+        75% { transform: scale(1.15) rotate(5deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
     </style>
 
     <script>
@@ -823,6 +866,13 @@
     <div class="slot-machine-wrapper">
       <div class="side-marker left">100</div>
       <div class="side-marker right">100</div>
+
+      <!-- Banner Counter Sisa Free Spins -->
+      <div id="free-spins-counter-banner" class="hidden items-center justify-center bg-[#1a0f30] border-2 border-[#e040fb] rounded-lg px-4 py-1.5 mb-2 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_10px_rgba(224,64,251,0.5)]">
+        <span class="text-xs text-[#e040fb] font-bold tracking-wider" style="font-family: 'Luckiest Guy', cursive; text-shadow: 1px 1px 0 #000;">
+          PUTARAN GRATIS: <span id="fs-counter-value" class="text-white text-sm px-1">10</span> SISA
+        </span>
+      </div>
 
       <div class="slots-window">
         <div class="payline"></div>
@@ -1109,6 +1159,35 @@
       </div>
     </div>
 
+    <!-- Free Spins Overlays -->
+    <div id="free-spins-overlay" class="fixed inset-0 bg-black/90 z-[450] hidden flex-col items-center justify-center p-4">
+      <div class="modal-box border-4 border-[#e040fb] bg-[#1a0f30] text-center max-w-sm">
+        <h2 id="fs-overlay-title" class="text-3xl md:text-4xl text-[#e040fb] mb-4" style="font-family: 'Luckiest Guy', cursive; text-shadow: 2px 2px 0 #4a148c;">
+          SCATTER TRIGGERED!
+        </h2>
+        <p id="fs-overlay-text" class="text-white text-lg font-bold mb-6" style="font-family: 'Carter One', cursive;">
+          KAMU MENDAPATKAN 10 SPIN GRATIS!
+        </p>
+        <button id="btn-fs-start" class="btn-green text-lg px-8 py-3 w-full bg-gradient-to-b from-[#e040fb] to-[#9c27b0] border-[#4a148c] shadow-[0_4px_0_#4a148c]">
+          MULAI SPIN GRATIS!
+        </button>
+      </div>
+    </div>
+
+    <div id="free-spins-congrats-overlay" class="fixed inset-0 bg-black/90 z-[450] hidden flex-col items-center justify-center p-4">
+      <div class="modal-box border-4 border-[#ffca28] bg-[#2a0f05] text-center max-w-sm">
+        <h2 class="text-3xl md:text-4xl text-[#ffca28] mb-4" style="font-family: 'Luckiest Guy', cursive; text-shadow: 2px 2px 0 #b71c1c;">
+          FREE SPINS SELESAI!
+        </h2>
+        <p id="fs-congrats-text" class="text-white text-lg font-bold mb-6" style="font-family: 'Carter One', cursive;">
+          TOTAL MENANG: Rp 0
+        </p>
+        <button id="btn-fs-congrats-close" class="btn-green text-lg px-8 py-3 w-full">
+          LANJUTKAN
+        </button>
+      </div>
+    </div>
+
     <script>
       // --- KONFIGURASI AUDIO & VOLUME ---
       let soundEnabled = true;
@@ -1233,9 +1312,10 @@
         { icon: "🪙", baseMultiplier: 2, name: "Coin" },
         { icon: "💎", baseMultiplier: 1, name: "Gem" },
         { icon: "🧭", baseMultiplier: 0.5, name: "Compass" },
+        { icon: "🌟", baseMultiplier: 0, name: "Scatter" }
       ];
 
-      const WEIGHTS = [1, 2, 4, 6, 10, 15];
+      const WEIGHTS = [1, 2, 4, 6, 10, 15, 2];
       const SYMBOL_HEIGHT = 90;
       const REELS_COUNT = 5;
       const EXTRA_SPINS = 25;
@@ -1250,6 +1330,9 @@
         isSuperMegaTriggered: false,
         isMegaTriggered: false,
         hasClosedWelcome: false,
+        freeSpinsRemaining: 0,
+        totalFreeSpinsWin: 0,
+        inFreeSpins: false
       };
 
       let autoSpinState = {
@@ -1298,6 +1381,7 @@
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
+            if (sym.icon === "🌟") div.classList.add("scatter-active");
             div.innerText = sym.icon;
             reelEls[r].appendChild(div);
           }
@@ -1379,7 +1463,7 @@
         spinCounterEl.style.border = "1px solid #ffca28";
         spinCounterEl.style.textShadow = "none";
 
-        const isSpinReady = state.balance >= 5000 && !state.isSpinning && !autoSpinState.active;
+        const isSpinReady = state.balance >= 5000 && !state.isSpinning && !autoSpinState.active && !state.inFreeSpins;
 
         let maxBetLimit = Math.floor(state.balance / 5000) * 5000;
         if (maxBetLimit < 5000) maxBetLimit = 5000;
@@ -1389,24 +1473,57 @@
         betSlider.value = state.currentBet;
         betSlider.disabled = !isSpinReady;
 
-        btnBetDown.disabled = state.currentBet <= 5000 || state.isSpinning || autoSpinState.active;
+        btnBetDown.disabled = state.currentBet <= 5000 || state.isSpinning || autoSpinState.active || state.inFreeSpins;
         btnBetUp.disabled =
           state.currentBet >= state.balance ||
           state.currentBet >= 15000000 ||
           state.isSpinning ||
-          autoSpinState.active;
+          autoSpinState.active ||
+          state.inFreeSpins;
 
         btnMaxBet.disabled = !isSpinReady;
 
-        if (autoSpinState.active) {
+        if (state.inFreeSpins) {
+          btnSpin.disabled = true;
+          btnSpin.innerText = `FREE (${state.freeSpinsRemaining})`;
+          btnSpin.style.background = "radial-gradient(circle, #f8bbd0, #e040fb, #7b1fa2)";
+          btnSpin.style.border = "4px solid #f8bbd0";
+          btnSpin.style.color = "#fff";
+          btnSpin.style.boxShadow = "0 0 15px #e040fb, 0 8px 0 #4a148c";
+        } else if (autoSpinState.active) {
           btnSpin.disabled = false;
+          btnSpin.innerText = "STOP";
         } else {
           btnSpin.disabled = !isSpinReady || state.balance < state.currentBet;
+          btnSpin.innerText = "SPIN";
+          btnSpin.style.background = "";
+          btnSpin.style.border = "";
+          btnSpin.style.color = "";
+          btnSpin.style.boxShadow = "";
+          btnSpin.style.textShadow = "";
         }
 
         const autoSelectEl = document.getElementById("auto-spin-select");
         if (autoSelectEl) {
-          autoSelectEl.disabled = autoSpinState.active;
+          autoSelectEl.disabled = autoSpinState.active || state.inFreeSpins;
+        }
+
+        const fsBanner = document.getElementById("free-spins-counter-banner");
+        if (fsBanner) {
+          if (state.inFreeSpins) {
+            fsBanner.classList.remove("hidden");
+            fsBanner.classList.add("flex");
+            const valEl = document.getElementById("fs-counter-value");
+            if (valEl) valEl.innerText = state.freeSpinsRemaining;
+          } else {
+            fsBanner.classList.remove("flex");
+            fsBanner.classList.add("hidden");
+          }
+        }
+
+        const btnAutoToggle = document.getElementById("btn-auto-toggle");
+        if (btnAutoToggle) {
+          btnAutoToggle.disabled = state.inFreeSpins;
         }
       }
 
@@ -1438,10 +1555,17 @@
       };
 
       function startSpinProcess() {
-        if (state.isSpinning || state.balance < state.currentBet) return;
+        if (state.isSpinning) return;
+
+        if (state.inFreeSpins) {
+          // Free spin is active - do not check balance, do not subtract bet
+          state.freeSpinsRemaining--;
+        } else {
+          if (state.balance < state.currentBet) return;
+          state.balance -= state.currentBet;
+        }
 
         state.isSpinning = true;
-        state.balance -= state.currentBet;
         overlay.classList.remove("show");
         state.spinCount++;
         updateUI();
@@ -1473,6 +1597,28 @@
             targetSymbol,
           ];
           state.isSuperMegaTriggered = true;
+        } else if (state.currentBet === 670000) {
+          // Scatter 15x
+          let scatterSym = SYMBOLS.find((sym) => sym.icon === "🌟");
+          let otherSym = SYMBOLS.find((sym) => sym.icon === "💎");
+          finalResults = [
+            scatterSym,
+            otherSym,
+            scatterSym,
+            otherSym,
+            scatterSym,
+          ];
+        } else if (state.currentBet === 675000) {
+          // Super Mega Jackpot (100x) + Scatter 10x
+          let targetSymbol = SYMBOLS.find((sym) => sym.icon === "🐼");
+          finalResults = [
+            targetSymbol,
+            targetSymbol,
+            targetSymbol,
+            targetSymbol,
+            targetSymbol,
+          ];
+          state.isSuperMegaTriggered = true;
         } else {
           for (let i = 0; i < REELS_COUNT; i++) {
             finalResults.push(getRandomSymbol());
@@ -1489,18 +1635,25 @@
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
+            if (sym.icon === "🌟") div.classList.add("scatter-active");
             div.innerText = sym.icon;
             el.appendChild(div);
           }
 
-          const dummyTop = getRandomSymbol();
+          let dummyTop = getRandomSymbol();
           const targetMiddle = finalResults[r];
-          const dummyBottom = getRandomSymbol();
+          let dummyBottom = getRandomSymbol();
+
+          // Force scatters on top for Bet 675,000 on reels 0, 2, 4
+          if (state.currentBet === 675000 && (r === 0 || r === 2 || r === 4)) {
+            dummyTop = SYMBOLS.find((sym) => sym.icon === "🌟");
+          }
 
           [dummyTop, targetMiddle, dummyBottom].forEach((sym) => {
             state.reelsData[r].push(sym);
             const div = document.createElement("div");
             div.className = "symbol";
+            if (sym.icon === "🌟") div.classList.add("scatter-active");
             div.innerText = sym.icon;
             el.appendChild(div);
           });
@@ -1673,34 +1826,50 @@
           }
         }
 
-        if (matchCount >= 3) {
-          let winAmount = 0;
-          let title = "WIN!";
-          let isBigWin = matchCount >= 4;
-          let overlayTime = isBigWin ? 3500 : 2000;
-          let isJackpot = false;
+        let winAmount = 0;
+        let title = "WIN!";
+        let isBigWin = matchCount >= 4;
+        let overlayTime = isBigWin ? 3500 : 2000;
+        let isJackpot = false;
 
-          if (state.isSuperMegaTriggered) {
-            winAmount = state.currentBet * 100;
-            title = "SUPER MEGA\nJACKPOT!!!";
-            isBigWin = true;
-            overlayTime = 5000;
-            isJackpot = true;
-          } else if (state.isMegaTriggered) {
-            winAmount = state.currentBet * 10;
-            title = "MEGA JACKPOT!";
-            isBigWin = true;
-            overlayTime = 4000;
-            isJackpot = true;
-          } else {
-            let finalMultiplier = winningSymbol.baseMultiplier * matchCount;
-            winAmount = state.currentBet * finalMultiplier;
-            if (matchCount === 4) title = "BIG WIN!";
-            if (matchCount === 5) title = "EPIC WIN!";
-          }
+        if (state.isSuperMegaTriggered) {
+          winAmount = state.currentBet * 100;
+          title = "SUPER MEGA\nJACKPOT!!!";
+          isBigWin = true;
+          overlayTime = 5000;
+          isJackpot = true;
+        } else if (state.isMegaTriggered) {
+          winAmount = state.currentBet * 10;
+          title = "MEGA JACKPOT!";
+          isBigWin = true;
+          overlayTime = 4000;
+          isJackpot = true;
+        } else if (matchCount >= 3) {
+          let finalMultiplier = winningSymbol.baseMultiplier * matchCount;
+          winAmount = state.currentBet * finalMultiplier;
+          if (matchCount === 4) title = "BIG WIN!";
+          if (matchCount === 5) title = "EPIC WIN!";
+        }
 
+        // Hitung scatter di seluruh area layar yang terlihat
+        let scatterCount = 0;
+        for (let r = 0; r < REELS_COUNT; r++) {
+          const targetIndex = state.reelsPos[r];
+          const topSym = state.reelsData[r][targetIndex - 1];
+          const midSym = state.reelsData[r][targetIndex];
+          const botSym = state.reelsData[r][targetIndex + 1];
+
+          if (topSym && topSym.icon === "🌟") scatterCount++;
+          if (midSym && midSym.icon === "🌟") scatterCount++;
+          if (botSym && botSym.icon === "🌟") scatterCount++;
+        }
+
+        if (winAmount > 0) {
           playWinSound(isBigWin);
           state.balance += winAmount;
+          if (state.inFreeSpins) {
+            state.totalFreeSpinsWin += winAmount;
+          }
 
           elWinTitle.innerText = title;
           elWinAmount.innerText = formatRupiah(winAmount);
@@ -1713,18 +1882,20 @@
           for (let r = 0; r < matchCount; r++) {
             const middleNode =
               reelEls[r].children[reelEls[r].children.length - 2];
-            middleNode.style.transform = "scale(1.3)";
-            middleNode.style.filter = "drop-shadow(0 0 20px #ffd700)";
-            middleNode.style.zIndex = "20";
+            if (middleNode) {
+              middleNode.style.transform = "scale(1.3)";
+              middleNode.style.filter = "drop-shadow(0 0 20px #ffd700)";
+              middleNode.style.zIndex = "20";
 
-            setTimeout(() => {
-              if (middleNode) {
-                middleNode.style.transform = "scale(1)";
-                middleNode.style.filter =
-                  "drop-shadow(0 5px 8px rgba(0,0,0,0.7))";
-                middleNode.style.zIndex = "1";
-              }
-            }, overlayTime);
+              setTimeout(() => {
+                if (middleNode) {
+                  middleNode.style.transform = "scale(1)";
+                  middleNode.style.filter =
+                    "drop-shadow(0 5px 8px rgba(0,0,0,0.7))";
+                  middleNode.style.zIndex = "1";
+                }
+              }, overlayTime);
+            }
           }
 
           elBalance.innerText = "+" + formatRupiah(winAmount);
@@ -1737,14 +1908,108 @@
             elBalance.style.color = "#fff";
             elBalance.style.textShadow = "2px 2px 0 #000";
             checkGameOver();
-            checkAndTriggerAutoSpin();
+            handlePostSpinSequence(scatterCount);
           }, overlayTime);
         } else {
           updateUI();
           checkGameOver();
-          checkAndTriggerAutoSpin();
+          handlePostSpinSequence(scatterCount);
         }
       }
+
+      function handlePostSpinSequence(scatterCount) {
+        // Cek jika scatter terpicu
+        if (scatterCount >= 3 && !state.inFreeSpins) {
+          let triggerCount = 10;
+
+          state.freeSpinsRemaining = triggerCount;
+          state.totalFreeSpinsWin = 0;
+          state.inFreeSpins = true;
+
+          // Hentikan auto-spin biasa jika aktif
+          if (autoSpinState.active) {
+            stopAutoSpin();
+            autoSpinState.wasActiveBeforeFS = true;
+          }
+
+          // Tampilkan Overlay Free Spins
+          const fsOverlay = document.getElementById("free-spins-overlay");
+          const fsText = document.getElementById("fs-overlay-text");
+          if (fsText) {
+            fsText.innerText = `KAMU MENDAPATKAN ${triggerCount} SPIN GRATIS!`;
+          }
+          if (fsOverlay) {
+            fsOverlay.classList.remove("hidden");
+            fsOverlay.classList.add("flex");
+          }
+          return;
+        }
+
+        // Jika sedang dalam mode Free Spins
+        if (state.inFreeSpins) {
+          if (state.freeSpinsRemaining > 0) {
+            // Lanjut spin gratis otomatis berikutnya
+            setTimeout(() => {
+              startSpinProcess();
+            }, 1000);
+          } else {
+            // Selesai Free Spins
+            state.inFreeSpins = false;
+
+            const congratsOverlay = document.getElementById("free-spins-congrats-overlay");
+            const congratsText = document.getElementById("fs-congrats-text");
+            if (congratsText) {
+              congratsText.innerText = `TOTAL MENANG: ${formatRupiah(state.totalFreeSpinsWin)}`;
+            }
+            if (congratsOverlay) {
+              congratsOverlay.classList.remove("hidden");
+              congratsOverlay.classList.add("flex");
+            }
+          }
+          return;
+        }
+
+        // Mode biasa: Cek pemicu auto-spin berikutnya
+        checkAndTriggerAutoSpin();
+      }
+
+      document.getElementById("btn-fs-start").onclick = () => {
+        const fsOverlay = document.getElementById("free-spins-overlay");
+        if (fsOverlay) {
+          fsOverlay.classList.add("hidden");
+          fsOverlay.classList.remove("flex");
+        }
+        
+        // Ubah tampilan slot ke tema Free Spins ungu
+        document.querySelector(".slot-machine-wrapper").classList.add("free-spins-active");
+        document.querySelector(".game-title").classList.add("free-spins-active");
+        document.querySelector(".slots-window").classList.add("free-spins-active");
+
+        updateUI();
+        startSpinProcess();
+      };
+
+      document.getElementById("btn-fs-congrats-close").onclick = () => {
+        const congratsOverlay = document.getElementById("free-spins-congrats-overlay");
+        if (congratsOverlay) {
+          congratsOverlay.classList.add("hidden");
+          congratsOverlay.classList.remove("flex");
+        }
+
+        // Kembalikan ke tampilan normal
+        document.querySelector(".slot-machine-wrapper").classList.remove("free-spins-active");
+        document.querySelector(".game-title").classList.remove("free-spins-active");
+        document.querySelector(".slots-window").classList.remove("free-spins-active");
+
+        updateUI();
+        checkGameOver();
+
+        // Lanjutkan auto-spin jika sebelumnya aktif
+        if (autoSpinState.wasActiveBeforeFS) {
+          autoSpinState.wasActiveBeforeFS = false;
+          startAutoSpin();
+        }
+      };
 
       // --- LOGIKA DEPOSIT ---
       let selectedDepoAmount = 50000;
